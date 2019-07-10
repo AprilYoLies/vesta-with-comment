@@ -106,7 +106,7 @@ public abstract class AbstractIdServiceImpl implements IdService {
         return timer.transTime(time);
     }
 
-
+    // 用于将 id 反解为 id 实例对象
     public Id expId(long id) {
         return idConverter.convert(id, this.idMeta);
     }
