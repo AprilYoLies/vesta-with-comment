@@ -12,7 +12,9 @@ import io.netty.handler.codec.http.FullHttpResponse;
 import io.netty.handler.codec.http.HttpHeaders.Values;
 import io.netty.handler.codec.http.HttpRequest;
 import io.netty.handler.codec.http.QueryStringDecoder;
+
 import java.text.SimpleDateFormat;
+
 import net.sf.json.JSONObject;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
@@ -76,7 +78,7 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
 
         HttpRequest req = (HttpRequest) msg;
 
-        if (is100ContinueExpected(req)) {
+        if (is100ContinueExpected(req)) {   // 处理头信息有 Expect: 100-continue 的情况
             ctx.write(new DefaultFullHttpResponse(HTTP_1_1, CONTINUE));
         }
 
@@ -95,7 +97,7 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
 
         QueryStringDecoder decoderQuery = new QueryStringDecoder(req.getUri());
         Map<String, List<String>> uriAttributes = decoderQuery.parameters();
-        for (Entry<String, List<String>> attr : uriAttributes.entrySet()) {
+        for (Entry<String, List<String>> attr : uriAttributes.entrySet()) { // 这里就是获取 uri 中的参数信息
             for (String attrVal : attr.getValue()) {
                 if (log.isDebugEnabled())
                     log.debug("Request Parameter: " + attr.getKey() + '='
@@ -121,14 +123,14 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
 
         StringBuffer sbContent = new StringBuffer();
 
-        if (ACTION_GENID.equals(uri.getPath())) {
+        if (ACTION_GENID.equals(uri.getPath())) {   // 处理 genid 操作
             long idl = idService.genId();
 
             if (log.isTraceEnabled())
                 log.trace("Generated id: " + idl);
 
             sbContent.append(idl);
-        } else if (ACTION_EXPID.equals(uri.getPath())) {
+        } else if (ACTION_EXPID.equals(uri.getPath())) {    // 处理 expid 操作
             Id ido = idService.expId(id);
 
             if (log.isTraceEnabled())
@@ -142,7 +144,7 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
 
             if (log.isTraceEnabled())
                 log.trace("Time: " + date);
-            SimpleDateFormat simpleDateFormat=new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
+            SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
             sbContent.append(simpleDateFormat.format(date));
         } else if (ACTION_MAKEID.equals(uri.getPath())) {
             long madeId = -1;
@@ -192,11 +194,11 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
 
         if (log.isTraceEnabled())
             log.trace("Message body: " + sbContent);
-
+        // 构建响应内容
         FullHttpResponse response = new DefaultFullHttpResponse(HTTP_1_1, OK,
                 Unpooled.wrappedBuffer(sbContent.toString().getBytes(
                         Charset.forName("UTF-8"))));
-
+        // 设置必要的响应头
         response.headers().set(CONTENT_TYPE, "text/plain");
         response.headers().set(CONTENT_LENGTH,
                 response.content().readableBytes());
@@ -207,9 +209,9 @@ public class VestaRestNettyServerHandler extends ChannelHandlerAdapter {
             log.trace("Keep Alive: " + keepAlive);
 
         if (!keepAlive) {
-            ctx.write(response).addListener(ChannelFutureListener.CLOSE);
+            ctx.write(response).addListener(ChannelFutureListener.CLOSE);   // 如果不是长连接类型，操作完成后直接关闭 channel
         } else {
-            response.headers().set(CONNECTION, Values.KEEP_ALIVE);
+            response.headers().set(CONNECTION, Values.KEEP_ALIVE);  // 否则设置长连接头信息，将响应写回
             ctx.write(response);
         }
     }

@@ -59,17 +59,21 @@
   </dependencies>
 
   <build>
-    <resources>
-      <resource>
-        <directory>src/main/resources</directory>
-        <!-- 拷贝资源文件到build/config目录下 -->
-        <targetPath>${project.build.directory}/config</targetPath>
-        <excludes>
-          <exclude>**/*.java</exclude>
-        </excludes>
-      </resource>
+<!--    <resources>-->
+<!--      <resource>-->
+<!--        <directory>src/main/resources</directory>-->
+<!--        &lt;!&ndash; 拷贝资源文件到build/config目录下 &ndash;&gt;-->
+<!--        <targetPath>${project.build.directory}/config</targetPath>-->
+<!--        <excludes>-->
+<!--          <exclude>**/*.java</exclude>-->
+<!--        </excludes>-->
+<!--        <includes>-->
+<!--          <include>**/*.xml</include>-->
+<!--          <include>**/*.properties</include>-->
+<!--        </includes>-->
+<!--      </resource>-->
+<!--    </resources>-->
 
-    </resources>
     <plugins>
       <plugin>
         <groupId>org.apache.maven.plugins</groupId>
