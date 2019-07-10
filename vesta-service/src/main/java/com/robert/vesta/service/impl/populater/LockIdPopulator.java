@@ -17,7 +17,7 @@ public class LockIdPopulator extends BasePopulator {
 
     public void populateId(Timer timer, Id id, IdMeta idMeta) {
         lock.lock();
-        try {
+        try {   // 用于向 id 填充 sequence 和时间戳
             super.populateId(timer, id, idMeta);
         } finally {
             lock.unlock();

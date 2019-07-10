@@ -8,7 +8,7 @@ public enum IdType {
     private IdType(String name) {
         this.name = name;
     }
-
+    // 根据 id 类型获取对应的唯一 id 号
     public long value() {
         switch (this) {
             case SECONDS:
@@ -38,7 +38,7 @@ public enum IdType {
         throw new IllegalArgumentException("Illegal IdType name <[" + name
                 + "]>, available names are seconds and milliseconds");
     }
-
+    // 将 type 号解析为 IdType，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
     public static IdType parse(long type) {
         if (type == 1) {
             return MILLISECONDS;

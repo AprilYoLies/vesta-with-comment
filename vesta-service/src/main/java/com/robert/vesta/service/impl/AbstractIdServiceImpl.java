@@ -32,7 +32,7 @@ public abstract class AbstractIdServiceImpl implements IdService {
 
     protected Timer timer;
 
-    public AbstractIdServiceImpl() {
+    public AbstractIdServiceImpl() {    // 默认颗粒度为秒级别
         idType = IdType.SECONDS;
     }
 
@@ -41,39 +41,39 @@ public abstract class AbstractIdServiceImpl implements IdService {
     }
 
     public AbstractIdServiceImpl(long type) {
-        idType = IdType.parse(type);
+        idType = IdType.parse(type);    // 将 type 号解析为 IdType，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
     }
 
     public AbstractIdServiceImpl(IdType type) {
         idType = type;
     }
-
+    // 缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证
     public void init() {
         if (this.idMeta == null) {
-            setIdMeta(IdMetaFactory.getIdMeta(idType));
+            setIdMeta(IdMetaFactory.getIdMeta(idType)); // 可以看出来，该方法仅仅是为了根据 id type 得到对应生成 id 不同号段的位置信息
         }
         if (this.idConverter == null) {
-            setIdConverter(new IdConverterImpl());
+            setIdConverter(new IdConverterImpl());  // 设置 id 转换器，算是附加性的功能
         }
         if (this.timer == null) {
-            setTimer(new SimpleTimer());
+            setTimer(new SimpleTimer());    // 仅仅是设置了一个定时器
         }
-        this.timer.init(idMeta, idType);
+        this.timer.init(idMeta, idType);    // 初始化 timer，缓存 idMeta、maxTime（从 EPOCH 开始，时间位所能记录的最大时刻数）、idType，验证时间是否会导致重复，打印关于时间的日志
 
-        this.machineId = machineIdProvider.getMachineId();
-        validateMachineId(this.machineId);
+        this.machineId = machineIdProvider.getMachineId();  // 从 id provider 中得到 machine id
+        validateMachineId(this.machineId);  // 验证 machine id 是否正确，0 - 1023 之间，供 1024 个
     }
 
     public long genId() {
-        Id id = new Id();
-
+        Id id = new Id();   // 用于承载生成的 id
+        // 设置对应的参数
         id.setMachine(machineId);
         id.setGenMethod(genMethod);
         id.setType(idType.value());
         id.setVersion(version);
 
-        populateId(id);
-
+        populateId(id); // 用于向 id 填充 sequence 和时间戳
+        // id 实例对象根据 idMeta 信息构建出真正的 id
         long ret = idConverter.convert(id, this.idMeta);
 
         // Use trace because it cause low performance
@@ -82,7 +82,7 @@ public abstract class AbstractIdServiceImpl implements IdService {
 
         return ret;
     }
-
+    // 验证 machine id 是否正确，0 - 1023 之间，供 1024 个
     public void validateMachineId(long machineId){
         if (machineId < 0) {
             log.error("The machine ID is not configured properly (" + machineId + " < 0) so that Vesta Service refuses to start.");
@@ -90,7 +90,7 @@ public abstract class AbstractIdServiceImpl implements IdService {
             throw new IllegalStateException(
                     "The machine ID is not configured properly (" + machineId + " < 0) so that Vesta Service refuses to start.");
 
-        } else if (machineId >= (1 << this.idMeta.getMachineBits())) {
+        } else if (machineId >= (1 << this.idMeta.getMachineBits())) {  // 获取 id 的机器号段长度
             log.error("The machine ID is not configured properly ("
                     + machineId + " >= " + (1 << this.idMeta.getMachineBits()) + ") so that Vesta Service refuses to start.");
 
@@ -153,7 +153,7 @@ public abstract class AbstractIdServiceImpl implements IdService {
     public void setIdMeta(IdMeta idMeta) {
         this.idMeta = idMeta;
     }
-
+    // 设置 machine id
     public void setMachineIdProvider(MachineIdProvider machineIdProvider) {
         this.machineIdProvider = machineIdProvider;
     }

@@ -7,11 +7,11 @@ public class IdConverterImpl implements IdConverter {
 
     public IdConverterImpl() {
     }
-
+    // id 实例对象根据 idMeta 信息构建出真正的 id
     public long convert(Id id, IdMeta idMeta) {
         return doConvert(id, idMeta);
     }
-
+    // id 实例对象根据 idMeta 信息构建出真正的 id
     protected long doConvert(Id id, IdMeta idMeta) {
         long ret = 0;
 

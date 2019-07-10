@@ -24,7 +24,7 @@ public class IdMeta {
         this.typeBits = typeBits;
         this.versionBits = versionBits;
     }
-
+    // 获取 id 的机器号段长度
     public byte getMachineBits() {
         return machineBits;
     }

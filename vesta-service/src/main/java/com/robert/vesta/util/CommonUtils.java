@@ -15,7 +15,7 @@ public class CommonUtils {
         }
             return false;
     }
-
+    // 判断是否是开启状态 "ON", "TRUE", "on", "true" 四种之一即可
     public static boolean isPropKeyOn(String key) {
 
         String prop = System.getProperty(key);

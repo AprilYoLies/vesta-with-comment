@@ -22,7 +22,6 @@ public class IdController {
 
     @RequestMapping("/genid")
     public long genId() {
-
         return idService.genId();
     }
 

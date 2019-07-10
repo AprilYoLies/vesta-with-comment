@@ -25,34 +25,34 @@ public class IdServiceImpl extends AbstractIdServiceImpl {
     }
 
     public IdServiceImpl(long type) {
-        super(type);
+        super(type);    // 初始化了 id type，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
     }
 
     public IdServiceImpl(IdType type) {
         super(type);
     }
 
-    @Override
+    @Override    // 缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
     public void init() {
-        super.init();
-        initPopulator();
+        super.init();   // 缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证
+        initPopulator();    // 初始化 populator，和并发操作的锁类型有关
     }
-
+    // 初始化 populator，和并发操作的锁类型有关
     public void initPopulator() {
         if (idPopulator != null){
             log.info("The " + idPopulator.getClass().getCanonicalName() + " is used.");
-        } else if (CommonUtils.isPropKeyOn(SYNC_LOCK_IMPL_KEY)) {
+        } else if (CommonUtils.isPropKeyOn(SYNC_LOCK_IMPL_KEY)) {   // 判断是否是开启状态 "ON", "TRUE", "on", "true" 四种之一即可
             log.info("The SyncIdPopulator is used.");
             idPopulator = new SyncIdPopulator();
-        } else if (CommonUtils.isPropKeyOn(ATOMIC_IMPL_KEY)) {
+        } else if (CommonUtils.isPropKeyOn(ATOMIC_IMPL_KEY)) {  // 判断是否是开启状态 "ON", "TRUE", "on", "true" 四种之一即可
             log.info("The AtomicIdPopulator is used.");
             idPopulator = new AtomicIdPopulator();
         } else {
             log.info("The default LockIdPopulator is used.");
-            idPopulator = new LockIdPopulator();
+            idPopulator = new LockIdPopulator();    // 构建了一个 LockIdPopulator
         }
     }
-
+    // 用于向 id 填充 sequence 和时间戳
     protected void populateId(Id id) {
         idPopulator.populateId(timer, id, idMeta);
     }

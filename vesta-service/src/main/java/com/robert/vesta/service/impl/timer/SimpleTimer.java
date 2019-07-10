@@ -13,26 +13,26 @@ public class SimpleTimer implements Timer {
     protected IdType idType;
     protected long maxTime;
     protected long epoch = EPOCH;
-
+    // 缓存 idMeta、maxTime（从 EPOCH 开始，时间位所能记录的最大时刻数）、idType，验证时间是否会导致重复，打印关于时间的日志
     public void init(IdMeta idMeta, IdType idType) {
         this.idMeta = idMeta;
-        this.maxTime = (1L << idMeta.getTimeBits()) - 1;
+        this.maxTime = (1L << idMeta.getTimeBits()) - 1;    // 最大时间，即从 EPOCH 开始，时间位所能记录的最大时刻数
         this.idType = idType;
-        this.genTime();
-        this.timerUsedLog();
+        this.genTime(); // 计算相对于 EPOCH 时间点的，已经流逝的毫秒或者秒时间（需要验证是否已经超过了最大时间）
+        this.timerUsedLog();    // 打印关于时间的日志信息，id 的时间段所占的位数，id 可能开始重复的日子，那一天距离今天还有多少天
     }
-
+    // 打印关于时间的日志信息，id 的时间段所占的位数，id 可能开始重复的日子，那一天距离今天还有多少天
     public void timerUsedLog(){
-        Date expirationDate = transTime(maxTime);
+        Date expirationDate = transTime(maxTime);   // 根据最大时间数，计算得到准确的日期
         long days = ((expirationDate.getTime() - System.currentTimeMillis())/(1000 * 60 * 60 * 24));
         log.info("The current time bit length is {}, the expiration date is {}, this can be used for {} days.",
                 idMeta.getTimeBits(), expirationDate, days);
     }
-
+    // 设置 epoch 信息
     public void setEpoch(long epoch) {
         this.epoch = epoch;
     }
-
+    // 根据最大时间数，计算得到准确的日期
     public Date transTime(long time) {
         if (idType == IdType.MILLISECONDS) {
             return new Date(time + epoch);
@@ -40,9 +40,9 @@ public class SimpleTimer implements Timer {
             return new Date(time * 1000 + epoch);
         }
     }
-
+    // 验证时间是否发生了回拨，如果是，日志记录并抛出异常
     public void validateTimestamp(long lastTimestamp, long timestamp) {
-        if (timestamp < lastTimestamp) {
+        if (timestamp < lastTimestamp) {    // 如果时间发生了回拨，日志记录拒绝生成 id
             if (log.isErrorEnabled())
                 log.error(String
                         .format("Clock moved backwards.  Refusing to generate id for %d second/milisecond.",
@@ -54,25 +54,25 @@ public class SimpleTimer implements Timer {
                             lastTimestamp - timestamp));
         }
     }
-
+    // 线程自旋到下一个最小时间单元
     public long tillNextTimeUnit(final long lastTimestamp) {
-        if (log.isInfoEnabled())
+        if (log.isInfoEnabled())    // 记录日志，说明在当前时间，可用的 id 用光了，需要等待到下一个时间
             log.info(String
                     .format("Ids are used out during %d. Waiting till next second/milisencond.",
                             lastTimestamp));
 
-        long timestamp = genTime();
+        long timestamp = genTime(); // 计算相对于 EPOCH 时间点的，已经流逝的毫秒或者秒时间（需要验证是否已经超过了最大时间）
         while (timestamp <= lastTimestamp) {
-            timestamp = genTime();
+            timestamp = genTime();  // 计算相对于 EPOCH 时间点的，已经流逝的毫秒或者秒时间（需要验证是否已经超过了最大时间）
         }
 
-        if (log.isInfoEnabled())
+        if (log.isInfoEnabled())    // 下一个时刻的日志记录
             log.info(String.format("Next second/milisencond %d is up.",
                     timestamp));
 
         return timestamp;
     }
-
+    // 计算相对于 EPOCH 时间点的，已经流逝的毫秒或者秒时间（需要验证是否已经超过了最大时间）
     public long genTime() {
         long time;
         if (idType == IdType.MILLISECONDS) {
@@ -80,10 +80,10 @@ public class SimpleTimer implements Timer {
         } else {
             time = (System.currentTimeMillis() - epoch) / 1000;
         }
-        validateTimestamp(time);
+        validateTimestamp(time);    // 如果距离流逝的时间已经超过了最大的时间数，也就是说时间位开始重复了
         return time;
     }
-
+    // 如果距离流逝的时间已经超过了最大的时间数，也就是说时间位开始重复了
     protected void validateTimestamp(long timestamp){
         if (timestamp > maxTime) {
             String error = String.format(

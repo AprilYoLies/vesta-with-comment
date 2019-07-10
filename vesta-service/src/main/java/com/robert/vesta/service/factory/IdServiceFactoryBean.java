@@ -21,8 +21,6 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
         PROPERTY, IP_CONFIGURABLE, DB
     }
 
-    ;
-
     private Type providerType;
 
     private long machineId;
@@ -39,8 +37,8 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
     private long version = -1;
 
     private IdService idService;
-
-    public void init() {
+    // 注意这里的 init 方法是由 spring 配置文件指定的，在初始化 IdServiceFactoryBean 实例时会调用此方法，另外在配置文件中还对当前实例的一些字段值进行了设置
+    public void init() {    // 该方法主要是根据 providerType 构建 IdServiceImpl，完成其 初始化，主要是缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
         if (providerType == null) {
             log.error("The type of Id service is mandatory.");
             throw new IllegalArgumentException(
@@ -48,7 +46,7 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
         }
 
         switch (providerType) {
-            case PROPERTY:
+            case PROPERTY:  // 根据 type 构建 IdServiceImpl，完成其 初始化，主要是缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
                 idService = constructPropertyIdService(machineId);
                 break;
             case IP_CONFIGURABLE:
@@ -63,25 +61,25 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
     public IdService getObject() throws Exception {
         return idService;
     }
-
+    // 根据 type 构建 IdServiceImpl，完成其 初始化，主要是缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
     private IdService constructPropertyIdService(long machineId) {
         log.info("Construct Property IdService machineId {}", machineId);
-
+        // PropertyMachineIdProvider 好像仅仅是一个 machine id holder
         PropertyMachineIdProvider propertyMachineIdProvider = new PropertyMachineIdProvider();
         propertyMachineIdProvider.setMachineId(machineId);
 
         IdServiceImpl idServiceImpl;
         if (type != -1)
-            idServiceImpl = new IdServiceImpl(type);
+            idServiceImpl = new IdServiceImpl(type);    // 初始化了 id type，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
         else
-            idServiceImpl = new IdServiceImpl();
+            idServiceImpl = new IdServiceImpl();    // 默认颗粒度为秒级别
 
-        idServiceImpl.setMachineIdProvider(propertyMachineIdProvider);
+        idServiceImpl.setMachineIdProvider(propertyMachineIdProvider);  // 设置 machine id
         if (genMethod != -1)
-            idServiceImpl.setGenMethod(genMethod);
+            idServiceImpl.setGenMethod(genMethod);  // 设置 id 的生成方式
         if (version != -1)
-            idServiceImpl.setVersion(version);
-        idServiceImpl.init();
+            idServiceImpl.setVersion(version);  // 设置 id 的版本号
+        idServiceImpl.init();   // 缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
 
         return idServiceImpl;
     }
