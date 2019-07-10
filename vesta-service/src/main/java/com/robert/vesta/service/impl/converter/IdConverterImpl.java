@@ -29,11 +29,11 @@ public class IdConverterImpl implements IdConverter {
 
         return ret;
     }
-
+    // 用于将 id 反解为 id 实例对象
     public Id convert(long id, IdMeta idMeta) {
         return doConvert(id, idMeta);
     }
-
+    // 用于将 id 反解为 id 实例对象
     protected Id doConvert(long id, IdMeta idMeta) {
         Id ret = new Id();
 
