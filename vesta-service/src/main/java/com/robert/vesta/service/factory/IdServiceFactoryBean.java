@@ -52,7 +52,7 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
             case IP_CONFIGURABLE:
                 idService = constructIpConfigurableIdService(ips);
                 break;
-            case DB:
+            case DB:    // 主要是构建了 dbMachineIdProvider，创建 idServiceImpl，缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
                 idService = constructDbIdService(dbUrl, dbName, dbUser, dbPassword);
                 break;
         }
@@ -105,13 +105,13 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
 
         return idServiceImpl;
     }
-
+    // 主要是构建了 dbMachineIdProvider，创建 idServiceImpl，缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
     private IdService constructDbIdService(String dbUrl, String dbName,
                                            String dbUser, String dbPassword) {
         log.info(
                 "Construct Db IdService dbUrl {} dbName {} dbUser {} dbPassword {}",
                 dbUrl, dbName, dbUser, dbPassword);
-
+        // 以下均是与数据库连接相关的代码
         ComboPooledDataSource comboPooledDataSource = new ComboPooledDataSource();
 
         String jdbcDriver = "com.mysql.jdbc.Driver";
@@ -143,23 +143,23 @@ public class IdServiceFactoryBean implements FactoryBean<IdService> {
         JdbcTemplate jdbcTemplate = new JdbcTemplate();
         jdbcTemplate.setLazyInit(false);
         jdbcTemplate.setDataSource(comboPooledDataSource);
-
+        // 创建一个 DbMachineIdProvider，它需要持有 jdbcTemplate
         DbMachineIdProvider dbMachineIdProvider = new DbMachineIdProvider();
-        dbMachineIdProvider.setJdbcTemplate(jdbcTemplate);
-        dbMachineIdProvider.init();
+        dbMachineIdProvider.setJdbcTemplate(jdbcTemplate);  // DbMachineIdProvider 持有 jdbcTemplate
+        dbMachineIdProvider.init(); // 主要就是获取 machine id，优先从数据库中查询，如果没有，就占用数据库中的一个坑，然后对应的 id 就是自身的 machine id
 
         IdServiceImpl idServiceImpl;
         if (type != -1)
-            idServiceImpl = new IdServiceImpl(type);
+            idServiceImpl = new IdServiceImpl(type);    // 初始化了 id type，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
         else
-            idServiceImpl = new IdServiceImpl();
+            idServiceImpl = new IdServiceImpl();    // 初始化了 id type，1 代表颗粒度为毫秒，0 代表颗粒度为秒，2 代表短 id
 
-        idServiceImpl.setMachineIdProvider(dbMachineIdProvider);
+        idServiceImpl.setMachineIdProvider(dbMachineIdProvider);    // idServiceImpl 持有 id provider
         if (genMethod != -1)
-            idServiceImpl.setGenMethod(genMethod);
+            idServiceImpl.setGenMethod(genMethod);  // 指定生成方式
         if (version != -1)
-            idServiceImpl.setVersion(version);
-        idServiceImpl.init();
+            idServiceImpl.setVersion(version);  // 啥版本嗯？？
+        idServiceImpl.init();   // 缓存 id 的元数据信息（不同号段长度），id 转换器，timer，初始化 timer（验证当前时间是否过期，打印时间相关日志），获取 machine id，并进行验证，初始化 populator，和并发操作的锁类型有关
 
         return idServiceImpl;
     }

@@ -9,10 +9,14 @@
   </bean>
 
   <bean id="idService" class="com.robert.vesta.service.factory.IdServiceFactoryBean" init-method="init">
-    <property name="providerType" value="PROPERTY"/>
+    <property name="providerType" value="DB"/>
     <property name="type" value="${vesta.type}"/>
     <property name="genMethod" value="${vesta.genMethod}"/>
     <property name="machineId" value="${vesta.machine}"/>
+    <property name="dbName" value="vesta"/>
+    <property name="dbPassword" value="kuaile1.."/>
+    <property name="dbUser" value="root"/>
+    <property name="dbUrl" value="localhost:3306"/>
   </bean>
 
 </beans>
